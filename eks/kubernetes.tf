@@ -14,7 +14,7 @@ resource "kubernetes_namespace" "test" {
 resource "kubernetes_deployment" "test" {
   metadata {
     name      = "nginx"
-    namespace = kubernetes_namespace.test.metadata[0].name
+    namespace = kubernetes_namespace.test.metadata.0.name
   }
 
   spec {
@@ -52,7 +52,7 @@ resource "kubernetes_service" "test" {
 
   spec {
     selector = {
-      app = kubernetes_deployment.test.spec[0].template.metadata[0].labels["app"]
+      app = kubernetes_deployment.test.spec[0].template.metadata.0.labels["app"]
     }
 
     port {
