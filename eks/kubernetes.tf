@@ -51,7 +51,7 @@ resource "kubernetes_service" "test" {
 
   spec {
     selector = {
-      app = kubernetes_deployment.test.spec[0].selector.match_labels["app"]
+      app = kubernetes_deployment.test.spec[0].selector[0].match_labels["app"]
     }
 
     port {
