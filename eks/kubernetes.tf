@@ -1,15 +1,3 @@
-provider "aws" {
-  region = "us-east-2"
-}
-
-data "aws_eks_cluster" "cluster" {
-  name = "myawsekscluster"
-}
-
-data "aws_eks_cluster_auth" "cluster" {
-  name = data.aws_eks_cluster.cluster.name
-}
-
 provider "kubernetes" {
   host                   = data.aws_eks_cluster.cluster.endpoint
   token                  = data.aws_eks_cluster_auth.cluster.token
