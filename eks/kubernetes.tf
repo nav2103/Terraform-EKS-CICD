@@ -1,7 +1,19 @@
+provider "aws" {
+  region = "us-east-2"
+}
+
+data "aws_eks_cluster" "cluster" {
+  name = "myawsekscluster"
+}
+
+data "aws_eks_cluster_auth" "cluster" {
+  name = data.aws_eks_cluster.cluster.name
+}
+
 provider "kubernetes" {
   host                   = data.aws_eks_cluster.cluster.endpoint
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
   token                  = data.aws_eks_cluster_auth.cluster.token
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
 }
 
 resource "kubernetes_namespace" "test" {
@@ -13,7 +25,7 @@ resource "kubernetes_namespace" "test" {
 resource "kubernetes_deployment" "test" {
   metadata {
     name      = "nginx"
-    namespace = kubernetes_namespace.test.metadata[0].name
+    namespace = kubernetes_namespace.test.metadata.name
   }
 
   spec {
@@ -46,12 +58,12 @@ resource "kubernetes_deployment" "test" {
 resource "kubernetes_service" "test" {
   metadata {
     name      = "test-service"
-    namespace = kubernetes_namespace.test.metadata[0].name
+    namespace = kubernetes_namespace.test.metadata.name
   }
 
   spec {
     selector = {
-      app = kubernetes_deployment.test.spec[0].selector[0].match_labels["app"]
+      app = kubernetes_deployment.test.spec.template.metadata.labels["app"]
     }
 
     port {
