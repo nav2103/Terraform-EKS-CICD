@@ -9,7 +9,7 @@ pipeline {
         stage('Checkout SCM'){
             steps{
                 script{
-                    //to be generated using pipeline syntax
+                    //to be generated using pipeline-syntax
                 }
             }
         }
