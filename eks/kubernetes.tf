@@ -1,37 +1,49 @@
+provider "aws" {
+  region = "us-east-2"
+}
+
+data "aws_eks_cluster" "cluster" {
+  name = aws_eks_cluster.main.name
+}
+
+data "aws_eks_cluster_auth" "cluster" {
+  name = aws_eks_cluster.main.name
+}
+
 provider "kubernetes" {
   host                   = data.aws_eks_cluster.cluster.endpoint
   token                  = data.aws_eks_cluster_auth.cluster.token
-  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority[0].data)
+  cluster_ca_certificate = base64decode(data.aws_eks_cluster.cluster.certificate_authority.0.data)
 }
 
-resource "kubernetes_namespace" "test" {
+resource "kubernetes_namespace" "nginx" {
   metadata {
     name = "nginx"
   }
 }
 
-resource "kubernetes_deployment" "test" {
+resource "kubernetes_deployment" "nginx" {
   metadata {
-    name      = "nginx"
-    namespace = kubernetes_namespace.test.metadata[0].name
+    name      = "nginx-deployment"
+    namespace = kubernetes_namespace.nginx.metadata[0].name
   }
 
   spec {
     replicas = 2
     selector {
       match_labels = {
-        app = "test-app"
+        app = "nginx"
       }
     }
     template {
       metadata {
         labels = {
-          app = "test-app"
+          app = "nginx"
         }
       }
       spec {
         container {
-          name  = "test-container"
+          name  = "nginx"
           image = "nginx:latest"
 
           port {
@@ -43,15 +55,15 @@ resource "kubernetes_deployment" "test" {
   }
 }
 
-resource "kubernetes_service" "test" {
+resource "kubernetes_service" "nginx" {
   metadata {
-    name      = "test-service"
-    namespace = kubernetes_namespace.test.metadata[0].name
+    name      = "nginx-service"
+    namespace = kubernetes_namespace.nginx.metadata[0].name
   }
 
   spec {
     selector = {
-      app = kubernetes_deployment.test.spec[0].template[0].metadata[0].labels["app"]
+      app = kubernetes_deployment.nginx.spec[0].template[0].metadata[0].labels["app"]
     }
 
     port {
@@ -59,6 +71,6 @@ resource "kubernetes_service" "test" {
       target_port = 80
     }
 
-    type = "ClusterIP"
+    type = "LoadBalancer"  # Use ClusterIP for internal access only
   }
 }
